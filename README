@@ -29,15 +29,41 @@ class Invoice < ActiveRecord::Base
 
   def print_currency
     # Currency#name is the default attribute
-    self.currency.name if self.currency
+    puts self.currency.name if self.currency
   end
 end
 
+ConstantRecord is meant as a substitute for ActiveRecord for tables, that will
+never change in the lifespan of a mongrel process. I.e. an application might
+let the user select a state of the US. Most applications will never have a
+feature where a user/admin can edit the list of US states. They are constant.
+
+In my current application, my main/parent class has about 35 child classes,
+that use over 40 different constant classes. The use of ConstantRecord meant
+an estimated 15 to 20 per cent speed gain for my application.
+
+ConstantRecord classes don't need accociations:
+
+class CanadianProvince < ConstantRecord::Base
+  self.data = [ 'Alberta', ... ]
+  has_many :people  # is not necessary, will not work
+end
+
+If you want to fetch all people living in Alberta, use:
+
+Person.find(:all, :conditions =>
+  {:province_id => CanadianProvince.find_by_name('Alberta').id}
+
+If you ever think, ConstantRecord lacks key features of ActiveRecord, (submit
+a patch or) create the table and derive you class from ActiveRecord instead.
+This is a key design objective for ConstantRecord.
+
+Features:
+
+Currency.find(1)               »  #<Currency:0x332cbf4 @id=1, @name="EUR">
 
 Just as in a database table, #id starts with 1.
 When self.data is a simple Array, #name is the default attribute.
-
-Currency.find(1)               »  #<Currency:0x332cbf4 @id=1, @name="EUR">
 
 MoreDetailedCurrency.find(3)   »  #<MoreDetailedCurrency:0x2c8d94c 
                                     @description="Canadian Dollar", 
