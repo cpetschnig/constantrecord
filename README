@@ -1,0 +1,63 @@
+ConstantRecord
+=======================================
+
+Requirements: ActiveSupport (Rails)
+
+Usage:
+
+class Currency < ConstantRecord::Base
+  self.data = [ 'EUR', 'USD', 'CAD', 'GBP', 'CHF' ]
+end
+
+or
+
+class MoreDetailedCurrency < ConstantRecord::Base
+  self.data = [
+    { :short => "EUR", :description => "Euro" },
+    { :short => "USD", :description => "US Dollar" },
+    { :short => "CAD", :description => "Canadian Dollar" },
+    { :short => "GBP", :description => "British Pound sterling" },
+    { :short => "CHF", :description => "Swiss franc" }
+  ]
+end
+
+
+Inside ActiveRecord, it works just like a "normal" ActiveRecord association:
+
+class Invoice < ActiveRecord::Base
+  belongs_to :currency   # via currency_id database column
+
+  def print_currency
+    # Currency#name is the default attribute
+    self.currency.name if self.currency
+  end
+end
+
+
+Just as in a database table, #id starts with 1.
+When self.data is a simple Array, #name is the default attribute.
+
+Currency.find(1)               »  #<Currency:0x332cbf4 @id=1, @name="EUR">
+
+MoreDetailedCurrency.find(3)   »  #<MoreDetailedCurrency:0x2c8d94c 
+                                    @description="Canadian Dollar", 
+                                    @id=3, @short="CAD">
+
+Currency.find_by_name('CHF')   »  #<Currency:0x2c86ef8 @id=3, @name="CHF">
+
+MoreDetailedCurrency.find_by_short('CAD')
+                               »  #<MoreDetailedCurrency:0x2c8d94c 
+                                    @description="Canadian Dollar", 
+                                    @id=3, @short="CAD">
+
+Currency.count :all            »  5
+
+
+There is one special feature, that is not ActiveRecord compatible. In a Form
+you can use:
+
+<%= f.select :currency_id, Currency.options_for_select %>
+
+or
+
+<%= f.select :currency_id, Currency.options_for_select(:include_null => true) %>
