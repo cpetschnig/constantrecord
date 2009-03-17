@@ -64,6 +64,10 @@ class TestConstantRecord < Test::Unit::TestCase
     assert_equal [['Euro', 1], ['US Dollar', 2], ['Canadian Dollar', 3],
       ['British Pound sterling', 4], ['Swiss franc', 5]],
       MultiColumnClass.options_for_select(:display => :description)
+    assert_equal [['-', "nothn'"], ['Euro', 'EUR'], ['US Dollar', 'USD'],
+      ['Canadian Dollar', 'CAD'], ['British Pound sterling', 'GBP'], ['Swiss franc', 'CHF']],
+      MultiColumnClass.options_for_select(:display => :description, :value => :short,
+        :include_null => true, :null_value => "nothn'")
     assert_equal [['*Sgt. Pepper*', 1], ['*Magical Mystery Tour*', 2], ['*Abbey Road*', 3]],
       SimpleClass2.options_for_select(:display => Proc.new{|obj| "*#{obj.album}*"})
   end
