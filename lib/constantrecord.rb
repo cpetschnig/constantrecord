@@ -183,33 +183,36 @@ module ConstantRecord
 
     # Creates options for a select box in a form
     # options:
-    # <tt>:display</tt> The attribute to call to display the text in theselect box or
+    # <tt>:display</tt> The attribute to call to display the text in the select box or
     # a Proc object:
     #   :display => Proc.new{ |obj| "#{obj.name} (#{obj.description})" }
-    # <tt>:include_null</tt> Make an entry with the value 0 in the selectbox. Default is +false+
-    # <tt>:null_text</tt> The text to show with on value 0. Default is '-'
+    # <tt>:value</tt> The value to use for the option value. Default is the id of the record.
+    # <tt>:include_null</tt> Make an entry with the value 0 in the selectbox. Default is +false+.
+    # <tt>:null_text</tt> The text to show with on value 0. Default is '-'.
+    # <tt>:null_value</tt> The value of the null option. Default is 0.
     def self.options_for_select(options = {})
       display = options[:display] || get_columns.keys[0]
-      raise "#{self}.options_for_select: :display must beeither Symbol or Proc." unless display.kind_of?(Symbol) ||display.kind_of?(Proc)
+      raise "#{self}.options_for_select: :display must be either Symbol or Proc." unless display.kind_of?(Symbol) ||display.kind_of?(Proc)
 
       if display.kind_of?(Symbol)
         display_col_nr = get_columns[display]
         raise "Unknown column :#{conditions.keys[0]}" unless display_col_nr
       end
 
+      value = options[:value] || :id
+
       i = 0
       result = @data.collect do |datum|
         i += 1
-        if display.kind_of?(Symbol)
-          [datum[display_col_nr], i]
-        else
-          [display.call(self.new(i, *datum)), i]
-        end
+        obj = self.new(i, *datum)
+        option_show = display.kind_of?(Symbol) ? datum[display_col_nr] : display.call(obj)
+        option_value = value == :id ? i : obj.send(value)
+
+        [option_show, option_value]
       end
 
       if options[:include_null] == true
-        null_text = options[:null_text] || '-'
-        result.insert(0, [ null_text, 0 ])
+        result.unshift [ options[:null_text] || '-', options[:null_value] || 0 ]
       end
 
       result
