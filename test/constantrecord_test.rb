@@ -61,6 +61,8 @@ class TestConstantRecord < Test::Unit::TestCase
     assert_equal [['Lithuania', 1], ['Latvia', 2], ['Estonia', 3]], SimpleClass.options_for_select
     assert_equal [['n/a', 0], ['Lithuania', 1], ['Latvia', 2], ['Estonia', 3]],
       SimpleClass.options_for_select(:include_null => true, :null_text => 'n/a')
+    assert_equal [['-', nil], ['Lithuania', 1], ['Latvia', 2], ['Estonia', 3]],
+      SimpleClass.options_for_select(:include_null => true, :null_value => nil)
     assert_equal [['Euro', 1], ['US Dollar', 2], ['Canadian Dollar', 3],
       ['British Pound sterling', 4], ['Swiss franc', 5]],
       MultiColumnClass.options_for_select(:display => :description)
