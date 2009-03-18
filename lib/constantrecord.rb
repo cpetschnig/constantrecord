@@ -212,7 +212,7 @@ module ConstantRecord
       end
 
       if options[:include_null] == true
-        result.unshift [ options[:null_text] || '-', options[:null_value] || 0 ]
+        result.unshift [ options[:null_text] || '-', options.key?(:null_value) ? options[:null_value] : 0 ]
       end
 
       result
