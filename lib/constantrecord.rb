@@ -116,7 +116,7 @@ module ConstantRecord
         raise "Unknown column :#{conditions.keys[0]}" unless compare_col_nr
 
         @data.each_with_index do |datum, i|
-          return self.new(i, *datum) if datum[compare_col_nr] == conditions.values[0]
+          return self.new(i + 1, *datum) if datum[compare_col_nr] == conditions.values[0]
         end
 
         return nil
