@@ -21,7 +21,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-module ConstantRecord
+module ConstantRecord  #:nodoc:
   # ConstantRecord::Base is a tiny ActiveRecord substitute for small, never
   # changing database tables.
   #
@@ -49,10 +49,10 @@ module ConstantRecord
   class Base
 
   private
-    attr_writer :id, :name
+    attr_writer :id, :name  #:nodoc:
 
   public
-    attr_reader :id, :name
+    attr_reader :id, :name  #:nodoc:
 
     # Set the column names of the constant table.
     # Default is one column called `name`
@@ -83,10 +83,10 @@ module ConstantRecord
       @data = args.collect{|arg| arg.kind_of?(Array) ? arg : [arg]}
     end
 
-    # Constructor; call with
-    #   MyConstantRecord.new(1, 'value_of_name')
-    # or
-    #   MyConstantRecord.new(1, 'values of column 1', 2, 3.333)
+    # Constructor. Call with the <tt>id</tt> plus a list of the values.
+    #
+    #   MyConstantRecord.new(1, 'value of column #1', 2, 3.333)
+    #
     def initialize(id, *values)
       @id = id
 
@@ -98,25 +98,25 @@ module ConstantRecord
       end
     end
 
-    # Implement +find+. Warning: conditions are only supported with+:first+!
+    # Implement +find+. Warning: <tt>:conditions</tt> are only supported with <tt>:first</tt>!
     def self.find(*args)
       selector = args[0]
 
       #  find might get called on constant_record_id.nil? == true
       return nil if selector.nil?
 
-      raise TypeError.new("#{self}.find failed!\nArguments:#{args.inspect}") unless selector.kind_of?(Symbol) || selector.kind_of?(Fixnum)
+      raise TypeError.new("#{self}.find failed!\nArguments: #{args.inspect}") unless selector.kind_of?(Symbol) || selector.kind_of?(Fixnum)
 
       if selector == :first
         conditions = args[1][:conditions]
 
-        raise TypeError.new("#{self}.find failed!\nArguments:#{args.inspect}") unless conditions.kind_of?(Hash) && conditions.size == 1
+        raise TypeError.new("#{self}.find failed!\nArguments: #{args.inspect}") unless conditions.kind_of?(Hash) && conditions.size == 1
 
         compare_col_nr = get_columns[conditions.keys[0]]
         raise "Unknown column :#{conditions.keys[0]}" unless compare_col_nr
 
         @data.each_with_index do |datum, i|
-          return self.new(i + 1, *datum) if datum[compare_col_nr] == conditions.values[0]
+          return self.new(i, *datum) if datum[compare_col_nr] == conditions.values[0]
         end
 
         return nil
@@ -128,27 +128,27 @@ module ConstantRecord
       #  ignore conditions if id is given as the first argument
       return find_by_id(selector) if selector.kind_of?(Fixnum)
 
-      raise "#{self}.find failed!\nArguments:#{args.inspect}"
+      raise "#{self}.find failed!\nArguments: #{args.inspect}"
     end
 
-    # Implement +count+. Warning: conditions are not supported!
+    # Implement +count+. Warning: <tt>:conditions</tt> are not supported!
     def self.count(*args)
       selector = args[0] || :all
-      raise TypeError.new("#{self}.find failed!\nArguments:#{args.inspect}") unless selector.kind_of?(Symbol)
+      raise TypeError.new("#{self}.count failed!\nArguments: #{args.inspect}") unless selector.kind_of?(Symbol)
 
       #  ignore conditions on :all
       return @data.size if selector == :all
 
-      raise "#{self}.find failed!\nArguments:#{args.inspect}"
+      raise "#{self}.count failed!\nArguments: #{args.inspect}"
     end
 
     # A ConstantRecord will never be a new record
-    def new_record?
+    def new_record?  #:nodoc:
       false
     end
 
     # A ConstantRecord should never be empty
-    def empty?
+    def empty?  #:nodoc:
       false
     end
 
@@ -181,22 +181,66 @@ module ConstantRecord
       result
     end
 
-    # Creates options for a select box in a form
-    # options:
-    # <tt>:display</tt> The attribute to call to display the text in the select box or
-    # a Proc object:
-    #   :display => Proc.new{ |obj| "#{obj.name} (#{obj.description})" }
-    # <tt>:value</tt> The value to use for the option value. Default is the id of the record.
-    # <tt>:include_null</tt> Make an entry with the value 0 in the selectbox. Default is +false+.
-    # <tt>:null_text</tt> The text to show with on value 0. Default is '-'.
-    # <tt>:null_value</tt> The value of the null option. Default is 0.
+    # Creates options for a select box in a form. The result is basically the same as
+    # the following code with ActiveRecord:
+    # 
+    #  MyActiveRecord.find(:all).collect{|obj| [obj.name, obj.id]}
+    #
+    # === Usage
+    #
+    # With the class:
+    #
+    #  class Currency < ConstantRecord::Base
+    #    columns :short, :description
+    #    data ['EUR', 'Euro'],
+    #         ['USD', 'US Dollar']
+    #  end
+    #
+    # The following erb code:
+    #
+    #  <%= f.select :currency_id, Currency.options_for_select %>
+    #
+    # Results to:
+    #
+    #  <select id="invoice_currency_id" name="invoice[currency_id]">
+    #    <option value="1">EUR</option>
+    #    <option value="2">USD</option>
+    #  </select>
+    #
+    # While:
+    #
+    #  <%= f.select :currency_id, Currency.options_for_select(
+    #    :display => Proc.new { |obj| "#{obj.short} (#{obj.description})" },
+    #    :value => :short, :include_null => true,
+    #    :null_text => 'Please choose one', :null_value => nil ) %>
+    #
+    # Results to:
+    #
+    #  <select id="invoice_currency_id" name="invoice[currency_id]">
+    #    <option value="">Please choose one</option>
+    #    <option value="EUR">EUR (Euro)</option>
+    #    <option value="USD">USD (US Dollar)</option>
+    #  </select>
+    #
+    # === Options
+    # 
+    # [:display]
+    #   The attribute to call to display the text in the select box or a Proc object.
+    # [:value]
+    #   The value to use for the option value. Default is the id of the record.
+    # [:include_null]
+    #   Make an entry with the value 0 in the selectbox. Default is +false+.
+    # [:null_text]
+    #   The text to show with on value 0. Default is '-'.
+    # [:null_value]
+    #   The value of the null option. Default is 0.
     def self.options_for_select(options = {})
       display = options[:display] || get_columns.keys[0]
       raise "#{self}.options_for_select: :display must be either Symbol or Proc." unless display.kind_of?(Symbol) ||display.kind_of?(Proc)
 
       if display.kind_of?(Symbol)
         display_col_nr = get_columns[display]
-        raise "Unknown column :#{conditions.keys[0]}" unless display_col_nr
+        raise "Unknown column :#{display}" unless display_col_nr
       end
 
       value = options[:value] || :id
