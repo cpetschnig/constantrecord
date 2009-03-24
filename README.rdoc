@@ -11,9 +11,9 @@ or
   class MoreDetailedCurrency < ConstantRecord::Base
     columns :short, :description
     data ['EUR', 'Euro'],
-         ['USD', 'US Dollar'],
-         ['CAD', 'Canadian Dollar'],
-         ['GBP', 'British Pound sterling'],
+         ['USD', 'United States dollar'],
+         ['CAD', 'Canadian dollar'],
+         ['GBP', 'British pound sterling'],
          ['CHF', 'Swiss franc']
   end
 
@@ -76,8 +76,9 @@ When +data+ is a simple Array, #name is the default attribute.
   Currency.count :all           >>  5
 
 
-There is one special feature, that is not ActiveRecord compatible. In a Form
-you can use:
+As a matter of fact, a ConstantRecord will often be used as a select field in a
+HTML form. Therefore it comes with a special feature, that is not ActiveRecord
+compatible. In a Form you can use:
 
   <%= f.select :currency_id, Currency.options_for_select %>
 
