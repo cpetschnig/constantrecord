@@ -235,7 +235,7 @@ module ConstantRecord  #:nodoc:
     # [:null_value]
     #   The value of the null option. Default is 0.
     def self.options_for_select(options = {})
-      display = options[:display] || get_columns.keys[0]
+      display = options[:display] || get_columns.invert[0]
       raise "#{self}.options_for_select: :display must be either Symbol or Proc." unless display.kind_of?(Symbol) ||display.kind_of?(Proc)
 
       if display.kind_of?(Symbol)
