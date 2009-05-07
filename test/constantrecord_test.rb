@@ -19,6 +19,15 @@ class MultiColumnClass < ConstantRecord::Base
        ['CHF', 'Swiss franc']
 end
 
+# A table/class that makes no sense, but has integers and booleans
+class MultiColumnClassNotString < ConstantRecord::Base
+  columns :prime, :bool
+  data [11, false],
+       [13, false],
+       [17, true],
+       [19, false]
+end
+
 class TestConstantRecord < Test::Unit::TestCase
   def test_simple_finder
     assert_equal 'Estonia', SimpleClass.find(3).name
@@ -33,7 +42,7 @@ class TestConstantRecord < Test::Unit::TestCase
     assert_equal [ 1, 2, 3 ], SimpleClass.find(:all).collect{|o| o.id}
     assert_equal 3, SimpleClass.count
   end
-  
+
   def test_simple_finder_with_custom_column_name
     assert_equal 'Abbey Road', SimpleClass2.find(3).album
     assert_equal 3, SimpleClass2.find(3).id
@@ -63,6 +72,12 @@ class TestConstantRecord < Test::Unit::TestCase
     assert_equal [ 'EUR', 'USD', 'CAD', 'GBP', 'CHF' ], MultiColumnClass.find(:all).collect{|o| o.short}
     assert_equal [ 1, 2, 3, 4, 5 ], MultiColumnClass.find(:all).collect{|o| o.id}
     assert_equal 5, MultiColumnClass.count
+  end
+
+  def test_multi_column_not_string_finder
+    assert_equal 4, MultiColumnClassNotString.find_by_prime(19).id
+    assert_equal 4, MultiColumnClassNotString.find_by_prime('19').id
+    assert_equal 3, MultiColumnClassNotString.find_by_bool(true).id
   end
 
   def test_options_for_select

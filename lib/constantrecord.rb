@@ -26,7 +26,7 @@ module ConstantRecord  #:nodoc:
   # changing database tables.
   #
   # == Usage:
-  # 
+  #
   #   class Currency < ConstantRecord::Base
   #     data 'EUR', 'USD', 'CAD', 'GBP', 'CHF'
   #   end
@@ -116,7 +116,14 @@ module ConstantRecord  #:nodoc:
         raise "Unknown column :#{conditions.keys[0]}" unless compare_col_nr
 
         @data.each_with_index do |datum, i|
-          return self.new(i, *datum) if datum[compare_col_nr] == conditions.values[0]
+          #  some special handling to integers
+          cond_compare = if datum[compare_col_nr].kind_of?(Integer)
+            conditions.values[0].to_i
+          else
+            #  leave anything else as it is
+            conditions.values[0]
+          end
+          return self.new(i + 1, *datum) if datum[compare_col_nr] == cond_compare
         end
 
         return nil
@@ -152,16 +159,42 @@ module ConstantRecord  #:nodoc:
       false
     end
 
+    # Show output in the form of `SELECT * FROM tablename;`
+    def self.table
+      #  get columns in the form of {0 => :id, 1 => :name, ...}
+      cols = {:id => 0}.merge(Hash[*(get_columns.collect{|col_name, index| [col_name, index + 1]}.flatten)]).invert.sort
+
+      #  calculate the maximum width of each column
+      max_size = []
+      cols.each do |index, name|
+        woci = with_of_column(index)
+        max_size << (woci > name.to_s.length ? woci : name.to_s.length)
+      end
+
+      output = ''
+      #  build table header
+      output += '+-' + max_size.collect{|o| '-' * o}.join('-+-') + "-+\n"
+      output += '| ' + cols.collect{|o| o[1].to_s.ljust(max_size[o[0]])}.join(' | ') + " |\n"
+      output += '+-' + max_size.collect{|o| '-' * o}.join('-+-') + "-+\n"
+      #  build table data
+      @data.each_with_index do |row, row_number|
+        output += '| ' + (row_number + 1).to_s.ljust(max_size[0]) + ' | '
+        index = 0
+        output += row.collect{|o| index += 1; o.to_s.ljust(max_size[index])}.join(' | ') + " |\n"
+      end
+      output += '+-' + max_size.collect{|o| '-' * o}.join('-+-') + "-+\n"
+    end
+
     # Keep this to spot problems in integration with ActiveRecord
     def method_missing(symbol, *args)  #:nodoc:
-      p "ConstantRecord::Base#method_missing(#{symbol})"
+      ::RAILS_DEFAULT_LOGGER.debug "#{self.class}#method_missing(:#{symbol})" if defined?(::RAILS_DEFAULT_LOGGER) && !::RAILS_DEFAULT_LOGGER.nil?
       super symbol, *args
     end
 
     # Keep this to spot problems in integration with ActiveRecord
     def respond_to?(symbol)  #:nodoc:
       result = super(symbol)
-      p "ConstantRecord::Base#respond_to?(#{symbol}) => #{result}(#{self.class})" unless result
+      ::RAILS_DEFAULT_LOGGER.debug "#{self.class}#respond_to?(:#{symbol}) => #{result}" if !result && defined?(::RAILS_DEFAULT_LOGGER) && !::RAILS_DEFAULT_LOGGER.nil?
       result
     end
 
@@ -170,20 +203,20 @@ module ConstantRecord  #:nodoc:
       if /^find_by_([_a-zA-Z]\w*)$/ =~ (symbol.to_s)
         return find(:first, :conditions => {$1.to_sym => args[0]})
       end
-      p "ConstantRecord::Base::method_missing(#{symbol})"
+      ::RAILS_DEFAULT_LOGGER.debug "#{self}::method_missing(:#{symbol})" if defined?(::RAILS_DEFAULT_LOGGER) && !::RAILS_DEFAULT_LOGGER.nil?
       super symbol, *args
     end
 
     # Keep this to spot problems in integration with ActiveRecord
     def self.respond_to?(symbol)  #:nodoc:
       result = super symbol
-      p "ConstantRecord::Base::respond_to?(#{symbol}) => #{result}(#{self.class})" unless result
+      ::RAILS_DEFAULT_LOGGER.debug "#{self}::respond_to?(:#{symbol}) => #{result}" if !result && defined?(::RAILS_DEFAULT_LOGGER) && !::RAILS_DEFAULT_LOGGER.nil?
       result
     end
 
     # Creates options for a select box in a form. The result is basically the same as
     # the following code with ActiveRecord:
-    # 
+    #
     #  MyActiveRecord.find(:all).collect{|obj| [obj.name, obj.id]}
     #
     # === Usage
@@ -223,7 +256,7 @@ module ConstantRecord  #:nodoc:
     #  </select>
     #
     # === Options
-    # 
+    #
     # [:display]
     #   The attribute to call to display the text in the select box or a Proc object.
     # [:value]
@@ -290,6 +323,16 @@ module ConstantRecord  #:nodoc:
       return nil if id <= 0 || id > @data.size
 
       self.new(id, *@data[id - 1])
+    end
+
+    def self.with_of_column(index)
+      return @data.size.to_s.length if index == 0
+      result = 0
+      @data.each do |row|
+        size = row[index - 1].to_s.length
+        result = size if size > result
+      end
+      result
     end
 
   end
