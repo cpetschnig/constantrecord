@@ -108,6 +108,9 @@ module ConstantRecord  #:nodoc:
       raise TypeError.new("#{self}.find failed!\nArguments: #{args.inspect}") unless selector.kind_of?(Symbol) || selector.kind_of?(Fixnum)
 
       if selector == :first
+        #  no conditions given, return the first record
+        return self.new(1, *@data[0]) if args.size == 1
+
         conditions = args[1][:conditions]
 
         raise TypeError.new("#{self}.find failed!\nArguments: #{args.inspect}") unless conditions.kind_of?(Hash) && conditions.size == 1
@@ -128,6 +131,8 @@ module ConstantRecord  #:nodoc:
 
         return nil
       end
+
+      return self.new(@data.size, *@data[-1]) if selector == :last
 
       #  ignore conditions on :all
       return find_all if selector == :all

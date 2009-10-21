@@ -41,6 +41,8 @@ class TestConstantRecord < Test::Unit::TestCase
     assert_equal [ 'Lithuania', 'Latvia', 'Estonia' ], SimpleClass.find(:all).collect{|o| o.name}
     assert_equal [ 1, 2, 3 ], SimpleClass.find(:all).collect{|o| o.id}
     assert_equal 3, SimpleClass.count
+    assert_equal 'Lithuania', SimpleClass.find(:first).name
+    assert_equal 'Estonia', SimpleClass.find(:last).name
   end
 
   def test_simple_finder_with_custom_column_name
