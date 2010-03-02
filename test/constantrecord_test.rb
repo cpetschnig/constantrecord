@@ -98,4 +98,8 @@ class TestConstantRecord < Test::Unit::TestCase
     assert_equal [['*Sgt. Pepper*', 1], ['*Magical Mystery Tour*', 2], ['*Abbey Road*', 3]],
       SimpleClass2.options_for_select(:display => Proc.new{|obj| "*#{obj.album}*"})
   end
+
+  def test_all_shortcut
+    assert_equal SimpleClass.find(:all).collect{|o| o.name}, SimpleClass.all.collect{|o| o.name}
+  end
 end

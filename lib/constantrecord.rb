@@ -143,6 +143,11 @@ module ConstantRecord  #:nodoc:
       raise "#{self}.find failed!\nArguments: #{args.inspect}"
     end
 
+    # shortcut to #find(:all)
+    def self.all
+      find_all
+    end
+
     # Implement +count+. Warning: <tt>:conditions</tt> are not supported!
     def self.count(*args)
       selector = args[0] || :all
