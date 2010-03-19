@@ -3,7 +3,7 @@ require 'rubygems'
 require 'rake'
 require 'echoe'
 
-Echoe.new('constantrecord', '0.1.1') do |p|
+Echoe.new('constantrecord', '0.1.2') do |p|
   p.description = "A tiny ActiveRecord substitute for small, never changing database tables."
   p.url = "http://github.com/ChristophPetschnig/constantrecord"
   p.author = "Christoph Petschnig"
