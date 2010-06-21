@@ -1,3 +1,4 @@
+$LOAD_PATH.unshift File.expand_path File.join(File.dirname(__FILE__), '..', 'lib')
 require 'constantrecord'
 require 'test/unit'
 
@@ -26,6 +27,13 @@ class MultiColumnClassNotString < ConstantRecord::Base
        [13, false],
        [17, true],
        [19, false]
+end
+
+class ForValidation < ConstantRecord::Base
+  columns :name, :value
+  data ['normal', 1],
+       ['gift',   2],
+       ['friend', 3]
 end
 
 class TestConstantRecord < Test::Unit::TestCase
@@ -75,7 +83,7 @@ class TestConstantRecord < Test::Unit::TestCase
     assert_equal [ 1, 2, 3, 4, 5 ], MultiColumnClass.find(:all).collect{|o| o.id}
     assert_equal 5, MultiColumnClass.count
   end
-
+  
   def test_multi_column_not_string_finder
     assert_equal 4, MultiColumnClassNotString.find_by_prime(19).id
     assert_equal 4, MultiColumnClassNotString.find_by_prime('19').id
@@ -101,5 +109,14 @@ class TestConstantRecord < Test::Unit::TestCase
 
   def test_all_shortcut
     assert_equal SimpleClass.find(:all).collect{|o| o.name}, SimpleClass.all.collect{|o| o.name}
+  end
+  
+  def test_validation_methods
+    # validates_inclusion_of :thingy, :in => ForValidation.names
+    assert_equal ['normal','gift','friend'], ForValidation.names
+    assert_equal [1,2,3], ForValidation.values
+    assert_equal ['EUR','USD','CAD','GBP','CHF'], MultiColumnClass.names
+    assert_equal ['Euro','US Dollar','Canadian Dollar','British Pound sterling','Swiss franc'], MultiColumnClass.values
+    assert_equal [1,2,3,4,5], MultiColumnClass.ids
   end
 end
