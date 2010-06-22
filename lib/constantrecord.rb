@@ -144,7 +144,7 @@ module ConstantRecord  #:nodoc:
       raise "#{self}.find failed!\nArguments: #{args.inspect}"
     end
 
-    # namecut to #find(:all)
+    # shortcut to #find(:all)
     def self.all
       find_all
     end
