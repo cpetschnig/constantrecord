@@ -99,3 +99,9 @@ In this case, you must also change your validation:
     validates_inclusion_of :currency_id, :in => Currency.names
   end
 
+
+== Copyright
+
+Copyright (c) 2009 Christoph Petschnig. See LICENSE for details.
+
+Thanks to Till Salzer, Torsten Schönebaum and Nate Wiger for contributions!

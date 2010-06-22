@@ -1,28 +1,8 @@
-#--
-# Copyright (c) 2009 Christoph Petschnig
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#++
-
 module ConstantRecord  #:nodoc:
+
   class ConstantNotFound < StandardError; end #:nodoc:
+  class LoggerError < StandardError; end      #:nodoc:
+  
   # ConstantRecord::Base is a tiny ActiveRecord substitute for small, never
   # changing database tables.
   #
@@ -198,14 +178,14 @@ module ConstantRecord  #:nodoc:
 
     # Keep this to spot problems in integration with ActiveRecord
     def method_missing(symbol, *args)  #:nodoc:
-      Rails.logger.debug "#{self.class}#method_missing(:#{symbol})" if defined?(Rails)
+      self.class.log(:debug, "#{self.class}#method_missing(:#{symbol})")
       super symbol, *args
     end
 
     # Keep this to spot problems in integration with ActiveRecord
     def respond_to?(symbol)  #:nodoc:
       result = super(symbol)
-      Rails.logger.debug "#{self.class}#respond_to?(:#{symbol}) => #{result}" if !result && defined?(Rails)
+      self.class.log(:debug, "#{self.class}#respond_to?(:#{symbol}) => #{result}") if !result
       result
     end
 
@@ -214,14 +194,14 @@ module ConstantRecord  #:nodoc:
       if /^find_by_([_a-zA-Z]\w*)$/ =~ (symbol.to_s)
         return find(:first, :conditions => {$1.to_sym => args[0]})
       end
-      Rails.logger.debug "#{self}::method_missing(:#{symbol})" if defined?(Rails)
+      self.log(:debug, "#{self}::method_missing(:#{symbol})")
       super symbol, *args
     end
 
     # Keep this to spot problems in integration with ActiveRecord
     def self.respond_to?(symbol)  #:nodoc:
       result = super symbol
-      Rails.logger.debug "#{self}::respond_to?(:#{symbol}) => #{result}" if !result && defined?(Rails)
+      self.log(:debug, "#{self}::respond_to?(:#{symbol}) => #{result}") if !result
       result
     end
 
@@ -306,6 +286,18 @@ module ConstantRecord  #:nodoc:
       result
     end
 
+    # Get the logger
+    def self.logger
+      @@logger
+    end
+
+    # Set the logger; ConstantRecord will try to use the Rails logger, if it's
+    # there. Otherwise an error will be raised; set your own logger by calling
+    # ConstantRecord::Base.logger = MyAwesomeLogger.new
+    def self.logger=(value)
+      @@logger = value
+    end
+
     private
 
     # Get the name of the columns or the default value
@@ -335,21 +327,22 @@ module ConstantRecord  #:nodoc:
 
       self.new(id, *@data[id - 1])
     end
-    
+
+    # TODO: make more generic implementaions of the next 3 methods!
     def self.names
       @data.map(&:first)
     end
-    
+
     def self.values
       @data.map(&:last)
     end
-    
+
     def self.ids
       ret = []
       @data.length.times{|n| ret << n+1}
       ret
     end
-    
+
     def self.width_of_column(index)
       return @data.size.to_s.length if index == 0
       result = 0
@@ -358,6 +351,12 @@ module ConstantRecord  #:nodoc:
         result = size if size > result
       end
       result
+    end
+
+    def self.log(level, msg)
+      @@logger ||= Rails.logger if defined?(Rails)     # TODO: take a more generic approach; at least try to include Sinatra, Padrino loggers or the Rack logger
+      raise LoggerError unless @@logger && @@logger.respond_to?(level)
+      @@logger.send(level, msg)
     end
 
   end
