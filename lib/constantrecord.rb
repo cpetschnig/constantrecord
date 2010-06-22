@@ -22,6 +22,7 @@
 #++
 
 module ConstantRecord  #:nodoc:
+  class ConstantNotFound < StandardError; end #:nodoc:
   # ConstantRecord::Base is a tiny ActiveRecord substitute for small, never
   # changing database tables.
   #
@@ -34,7 +35,7 @@ module ConstantRecord  #:nodoc:
   # or
   #
   #   class MoreDetailedCurrency < ConstantRecord::Base
-  #     columns :short, :description
+  #     columns :name, :description
   #     data ['EUR', 'Euro'],
   #          ['USD', 'US Dollar'],
   #          ['CAD', 'Canadian Dollar'],
@@ -143,7 +144,7 @@ module ConstantRecord  #:nodoc:
       raise "#{self}.find failed!\nArguments: #{args.inspect}"
     end
 
-    # shortcut to #find(:all)
+    # namecut to #find(:all)
     def self.all
       find_all
     end
@@ -177,7 +178,7 @@ module ConstantRecord  #:nodoc:
       #  calculate the maximum width of each column
       max_size = []
       cols.each do |index, name|
-        woci = with_of_column(index)
+        woci = width_of_column(index)
         max_size << (woci > name.to_s.length ? woci : name.to_s.length)
       end
 
@@ -234,7 +235,7 @@ module ConstantRecord  #:nodoc:
     # With the class:
     #
     #  class Currency < ConstantRecord::Base
-    #    columns :short, :description
+    #    columns :name, :description
     #    data ['EUR', 'Euro'],
     #         ['USD', 'US Dollar']
     #  end
@@ -253,8 +254,8 @@ module ConstantRecord  #:nodoc:
     # While:
     #
     #  <%= f.select :currency_id, Currency.options_for_select(
-    #    :display => Proc.new { |obj| "#{obj.short} (#{obj.description})" },
-    #    :value => :short, :include_null => true,
+    #    :display => Proc.new { |obj| "#{obj.name} (#{obj.description})" },
+    #    :value => :name, :include_null => true,
     #    :null_text => 'Please choose one', :null_value => nil ) %>
     #
     # Results to:
@@ -334,8 +335,22 @@ module ConstantRecord  #:nodoc:
 
       self.new(id, *@data[id - 1])
     end
-
-    def self.with_of_column(index)
+    
+    def self.names
+      @data.map(&:first)
+    end
+    
+    def self.values
+      @data.map(&:last)
+    end
+    
+    def self.ids
+      ret = []
+      @data.length.times{|n| ret << n+1}
+      ret
+    end
+    
+    def self.width_of_column(index)
       return @data.size.to_s.length if index == 0
       result = 0
       @data.each do |row|

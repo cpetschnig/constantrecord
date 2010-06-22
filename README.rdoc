@@ -1,5 +1,7 @@
 = ConstantRecord
 
+A tiny ActiveRecord substitute for small, never changing database tables.
+
 == Usage
 
   class Currency < ConstantRecord::Base
@@ -9,7 +11,7 @@
 or
 
   class MoreDetailedCurrency < ConstantRecord::Base
-    columns :short, :description
+    columns :name, :description
     data ['EUR', 'Euro'],
          ['USD', 'United States dollar'],
          ['CAD', 'Canadian dollar'],
@@ -22,6 +24,7 @@ Inside ActiveRecord, it works just like a "normal" ActiveRecord association:
 
   class Invoice < ActiveRecord::Base
     belongs_to :currency   # via currency_id database column
+    validates_inclusion_of :currency_id, :in => Currency.ids
 
     def print_currency
       # Currency#name is the default attribute
@@ -39,10 +42,10 @@ In my current application, my main/parent class has about 35 child classes,
 that use over 40 different constant classes. The use of ConstantRecord meant
 an estimated 15 to 20 per cent speed gain for my application.
 
-ConstantRecord classes don't need accociations:
+ConstantRecord classes don't need associations:
 
   class CanadianProvince < ConstantRecord::Base
-    data = 'Alberta', ...
+    data 'Alberta', ...
     has_many :people  # is not necessary, will not work
   end
 
@@ -50,7 +53,7 @@ If you want to fetch all people living in Alberta, use:
 
   Person.find(:all, :conditions =>
     {:province_id => CanadianProvince.find_by_name('Alberta').id}
-
+    
 If you ever think, ConstantRecord lacks key features of ActiveRecord, (submit
 a patch or) create the table and derive you class from ActiveRecord instead.
 This is a key design objective for ConstantRecord.
@@ -64,14 +67,14 @@ When +data+ is a simple Array, #name is the default attribute.
 
   MoreDetailedCurrency.find(3)  >>  #<MoreDetailedCurrency:0x2c8d94c 
                                       @description="Canadian Dollar", 
-                                      @id=3, @short="CAD">
+                                      @id=3, @name="CAD">
 
   Currency.find_by_name('CHF')  >>  #<Currency:0x2c86ef8 @id=3, @name="CHF">
 
-  MoreDetailedCurrency.find_by_short('CAD')
+  MoreDetailedCurrency.find_by_name('CAD')
                                 >>  #<MoreDetailedCurrency:0x2c8d94c 
                                       @description="Canadian Dollar", 
-                                      @id=3, @short="CAD">
+                                      @id=3, @name="CAD">
 
   Currency.count :all           >>  5
 
@@ -85,3 +88,14 @@ ActiveRecord compatible. In a Form you can use:
 or
 
   <%= f.select :currency_id, Currency.options_for_select(:include_null => true) %>
+  
+If you want to store the name instead of the ID, then you can use:
+ 
+  <%= f.select :currency_id, Currency.options_for_select(:value => :name) %>
+
+In this case, you must also change your validation:
+
+  class Invoice < ActiveRecord::Base
+    validates_inclusion_of :currency_id, :in => Currency.names
+  end
+
