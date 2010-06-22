@@ -197,14 +197,14 @@ module ConstantRecord  #:nodoc:
 
     # Keep this to spot problems in integration with ActiveRecord
     def method_missing(symbol, *args)  #:nodoc:
-      ::RAILS_DEFAULT_LOGGER.debug "#{self.class}#method_missing(:#{symbol})" if defined?(::RAILS_DEFAULT_LOGGER) && !::RAILS_DEFAULT_LOGGER.nil?
+      Rails.logger.debug "#{self.class}#method_missing(:#{symbol})" if defined?(Rails)
       super symbol, *args
     end
 
     # Keep this to spot problems in integration with ActiveRecord
     def respond_to?(symbol)  #:nodoc:
       result = super(symbol)
-      ::RAILS_DEFAULT_LOGGER.debug "#{self.class}#respond_to?(:#{symbol}) => #{result}" if !result && defined?(::RAILS_DEFAULT_LOGGER) && !::RAILS_DEFAULT_LOGGER.nil?
+      Rails.logger.debug "#{self.class}#respond_to?(:#{symbol}) => #{result}" if !result && defined?(Rails)
       result
     end
 
@@ -213,14 +213,14 @@ module ConstantRecord  #:nodoc:
       if /^find_by_([_a-zA-Z]\w*)$/ =~ (symbol.to_s)
         return find(:first, :conditions => {$1.to_sym => args[0]})
       end
-      ::RAILS_DEFAULT_LOGGER.debug "#{self}::method_missing(:#{symbol})" if defined?(::RAILS_DEFAULT_LOGGER) && !::RAILS_DEFAULT_LOGGER.nil?
+      Rails.logger.debug "#{self}::method_missing(:#{symbol})" if defined?(Rails)
       super symbol, *args
     end
 
     # Keep this to spot problems in integration with ActiveRecord
     def self.respond_to?(symbol)  #:nodoc:
       result = super symbol
-      ::RAILS_DEFAULT_LOGGER.debug "#{self}::respond_to?(:#{symbol}) => #{result}" if !result && defined?(::RAILS_DEFAULT_LOGGER) && !::RAILS_DEFAULT_LOGGER.nil?
+      Rails.logger.debug "#{self}::respond_to?(:#{symbol}) => #{result}" if !result && defined?(Rails)
       result
     end
 
