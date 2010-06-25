@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
      "README.rdoc",
      "Rakefile",
      "VERSION",
+     "constantrecord.gemspec",
      "lib/constantrecord.rb",
      "test/helper.rb",
      "test/test_constantrecord.rb"

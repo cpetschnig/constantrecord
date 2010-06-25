@@ -40,23 +40,15 @@ module ConstantRecord  #:nodoc:
     def self.columns(*args)
       # remove the default column name
       undef_method :name
+      class << self
+        undef_method :names
+      end
 
-      i = 0
-      col_ar = args.collect do |column|
-        raise TypeError.new("You can only pass Symbol or String object to #{self}::columns.") unless column.kind_of?(Symbol) || column.kind_of?(String)
-
-        class_eval do
-          private
-              attr_writer column
-          public
-              attr_reader column
-        end
-
-        i += 1
-        [column.to_sym, i - 1]
-      end.flatten
+      col_ar = build_column_methods(*args)
 
       @columns = Hash[*col_ar]
+
+      build_array_over_column_methods
     end
 
     # Set the data. Arguments must be an Array.
@@ -286,6 +278,20 @@ module ConstantRecord  #:nodoc:
       result
     end
 
+    # Returns an array of the first column of your data. This method will be
+    # removed, if you override your class with +columns+, that do not include
+    # a column called :name
+    def self.names
+      @data.map(&:first)
+    end
+
+    # Returns an array of all ids
+    def self.ids
+      ret = []
+      @data.length.times{|n| ret << n+1}
+      ret
+    end
+
     # Get the logger
     def self.logger
       @@logger
@@ -328,21 +334,6 @@ module ConstantRecord  #:nodoc:
       self.new(id, *@data[id - 1])
     end
 
-    # TODO: make more generic implementaions of the next 3 methods!
-    def self.names
-      @data.map(&:first)
-    end
-
-    def self.values
-      @data.map(&:last)
-    end
-
-    def self.ids
-      ret = []
-      @data.length.times{|n| ret << n+1}
-      ret
-    end
-
     def self.width_of_column(index)
       return @data.size.to_s.length if index == 0
       result = 0
@@ -351,6 +342,47 @@ module ConstantRecord  #:nodoc:
         result = size if size > result
       end
       result
+    end
+
+    # Build the attributes for columns;
+    # Returns an array in the form: [[:name_of_column_1, 0], [:name_of_column_2, 1], ...
+    def self.build_column_methods(*args)
+      i = 0
+      args.collect do |column|
+        raise TypeError.new("You can only pass Symbol or String object to #{self}::columns.") unless column.kind_of?(Symbol) || column.kind_of?(String)
+
+        # TODO: warn, if methods already exist!!
+
+        class_eval do
+          private
+              attr_writer column
+          public
+              attr_reader column
+        end
+
+        i += 1
+        [column.to_sym, i - 1]
+      end.flatten
+    end
+
+    # Create a class method for every column;
+    # class UsState with columns :name, :short_form will give you the methods
+    # :names and :short_forms, which will return an array of their column values
+    def self.build_array_over_column_methods
+      @columns.each do |column, column_index|
+        # try to use (most likely) ActiveSupport inflections, if possible
+        pluralized_name = if String.new.respond_to? :pluralize
+          column.to_s.pluralize
+        else
+          "#{column}s"   # better than nothing
+        end
+
+        if self.class.method_defined?(pluralized_name)
+          self.log :warn, "Warning!!! Method #{self}##{pluralized_name} is already defined. Consider using a different column name!"
+        end
+
+        class_eval "def self.#{pluralized_name}; @data.map{|obj| obj[#{column_index}]}; end"
+      end
     end
 
     def self.log(level, msg)

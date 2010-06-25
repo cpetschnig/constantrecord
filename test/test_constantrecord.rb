@@ -34,12 +34,9 @@ class ForValidation < ConstantRecord::Base
        ['friend', 3]
 end
 
-class MyTestLogger
-  def debug(*args); end
-  def info(*args); end
-  def warn(*args); end
-  def error(*args); end
-  def fatal(*args); end
+class BadColumnNames < ConstantRecord::Base
+#  columns :instance_method, :class_variable
+#  data ['foo', 'bar']
 end
 
 class TestConstantRecord < Test::Unit::TestCase
@@ -123,16 +120,21 @@ class TestConstantRecord < Test::Unit::TestCase
     assert_equal ['normal','gift','friend'], ForValidation.names
     assert_equal [1,2,3], ForValidation.values
     assert_equal [1,2,3,4,5], MultiColumnClass.ids
-    #assert_equal ['Sgt. Pepper', 'Magical Mystery Tour', 'Abbey Road'], SimpleClass2.albums   TODO: implement pending test
-    #assert_equal %w{EUR USD CAD GBP CHF}, MultiColumnClass.shorts           TODO: implement pending test
-    #assert_raise (NoMethodError) { MultiColumnClass.names }                 TODO: pending
-    #assert_raise (NoMethodError) { MultiColumnClass.values }                TODO: pending
+    assert_equal ['Sgt. Pepper', 'Magical Mystery Tour', 'Abbey Road'], SimpleClass2.albums
+    assert_equal %w{EUR USD CAD GBP CHF}, MultiColumnClass.shorts
+    assert_raise (NoMethodError) { MultiColumnClass.names }
+    assert_raise (NoMethodError) { MultiColumnClass.values }
   end
 
   def test_logger
-    ConstantRecord::Base.logger = MyTestLogger.new
     assert_nothing_raised { ConstantRecord::Base.logger = MyTestLogger.new }
     assert_nothing_raised { SimpleClass.respond_to?(:asdfghjkl) }
     assert_nothing_raised { MultiColumnClass.find(1).respond_to?(:asdfghjkl) }
+  end
+
+  def test_bad_colum_names
+    warnings_count = ConstantRecord::Base.logger.warn_count
+    BadColumnNames.columns :instance_method, :class_variable    #  must log 2 warnings
+    assert_equal ConstantRecord::Base.logger.warn_count - warnings_count, 2
   end
 end
