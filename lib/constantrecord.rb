@@ -80,7 +80,11 @@ module ConstantRecord  #:nodoc:
 
       raise TypeError.new("#{self}.find failed!\nArguments: #{args.inspect}") unless selector.kind_of?(Symbol) || selector.kind_of?(Fixnum)
 
-      if selector == :first
+      case selector
+      when :all
+        #  ignore conditions on :all
+        return find_all if selector == :all
+      when :first
         #  no conditions given, return the first record
         return self.new(1, *@data[0]) if args.size == 1
 
@@ -103,17 +107,14 @@ module ConstantRecord  #:nodoc:
         end
 
         return nil
+      when :last
+        return self.new(@data.size, *@data[-1])
+      else
+        #  ignore conditions if id is given as the first argument
+        return find_by_id(selector) if selector.kind_of?(Fixnum)
       end
 
-      return self.new(@data.size, *@data[-1]) if selector == :last
-
-      #  ignore conditions on :all
-      return find_all if selector == :all
-
-      #  ignore conditions if id is given as the first argument
-      return find_by_id(selector) if selector.kind_of?(Fixnum)
-
-      raise "#{self}.find failed!\nArguments: #{args.inspect}"
+      raise ArgumentError.new("#{self}.find failed!\nArguments: #{args.inspect}")
     end
 
     # shortcut to #find(:all)
@@ -130,6 +131,12 @@ module ConstantRecord  #:nodoc:
     def self.last(*args)
       find(:last, *args)
     end
+    
+    # shortcut to retrieve value for name - eases dynamic lookup
+    def self.[](name)
+      ret = @data.detect{|datum| datum.first == name}
+      ret ? ret.last : raise(ConstantNotFound, "No such #{self.name} constant: #{name}")
+    end
 
     # Implement +count+. Warning: <tt>:conditions</tt> are not supported!
     def self.count(*args)
@@ -139,7 +146,7 @@ module ConstantRecord  #:nodoc:
       #  ignore conditions on :all
       return @data.size if selector == :all
 
-      raise "#{self}.count failed!\nArguments: #{args.inspect}"
+      raise ArgumentError.new("#{self}.count failed!\nArguments: #{args.inspect}")
     end
 
     # A ConstantRecord will never be a new record

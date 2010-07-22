@@ -92,6 +92,10 @@ class TestConstantRecord < Test::Unit::TestCase
     assert_equal [ 'EUR', 'USD', 'CAD', 'GBP', 'CHF' ], MultiColumnClass.find(:all).collect{|o| o.short}
     assert_equal [ 1, 2, 3, 4, 5 ], MultiColumnClass.find(:all).collect{|o| o.id}
     assert_equal 5, MultiColumnClass.count
+    
+    assert_equal 'Euro', MultiColumnClass['EUR']
+    assert_equal 'US Dollar', MultiColumnClass['USD']
+    assert_raise (ConstantRecord::ConstantNotFound) { MultiColumnClass['BadValue'] }
   end
 
   def test_multi_column_not_string_finder
