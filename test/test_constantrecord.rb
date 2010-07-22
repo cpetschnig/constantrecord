@@ -51,9 +51,15 @@ class TestConstantRecord < Test::Unit::TestCase
     assert_raise (RuntimeError) { SimpleClass.find_by_foo('bar') }
     assert_equal [ 'Lithuania', 'Latvia', 'Estonia' ], SimpleClass.find(:all).collect{|o| o.name}
     assert_equal [ 1, 2, 3 ], SimpleClass.find(:all).collect{|o| o.id}
+    assert_equal [ 1, 2, 3 ], SimpleClass.find(:all, :ignored => 'blah').collect{|o| o.id}
+    assert_equal [ 1, 2, 3 ], SimpleClass.all.collect{|o| o.id}
+    assert_equal [ 1, 2, 3 ], SimpleClass.all(:ignored => 'blah').collect{|o| o.id}
     assert_equal 3, SimpleClass.count
     assert_equal 'Lithuania', SimpleClass.find(:first).name
+    assert_equal 'Lithuania', SimpleClass.first.name
+    assert_equal 'Estonia', SimpleClass.first(:conditions => {:name => "Estonia"}).name
     assert_equal 'Estonia', SimpleClass.find(:last).name
+    assert_equal 'Estonia', SimpleClass.last.name
   end
 
   def test_simple_finder_with_custom_column_name
@@ -72,7 +78,7 @@ class TestConstantRecord < Test::Unit::TestCase
   end
 
   def test_multi_column_finder
-    all = MultiColumnClass.find(:all)
+    all = MultiColumnClass.find(:all, :conditions => {})
     chf = all[4]
     assert 5 == chf.id && chf.short && 'Swiss franc' == chf.description
 

@@ -117,8 +117,18 @@ module ConstantRecord  #:nodoc:
     end
 
     # shortcut to #find(:all)
-    def self.all
+    def self.all(*args)
       find_all
+    end
+    
+    # shortcut to #find(:first)
+    def self.first(*args)
+      find(:first, *args)
+    end
+
+    # shortcut to #find(:last)
+    def self.last(*args)
+      find(:last, *args)
     end
 
     # Implement +count+. Warning: <tt>:conditions</tt> are not supported!
