@@ -142,6 +142,11 @@ module ConstantRecord  #:nodoc:
       false
     end
 
+    # Rails 3.0: this method is checked in ActiveRecord::Base.compute_type
+    def self.match(*args)
+      true
+    end
+
     # Show output in the form of `SELECT * FROM tablename;`
     def self.table
       #  get columns in the form of {0 => :id, 1 => :name, ...}
