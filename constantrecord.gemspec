@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{constantrecord}
-  s.version = "0.1.2"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Christoph Petschnig"]
-  s.date = %q{2010-06-22}
+  s.date = %q{2010-10-02}
   s.description = %q{A tiny ActiveRecord substitute for small, never changing database tables.}
   s.email = %q{info@purevirtual.de}
   s.extra_rdoc_files = [
@@ -23,6 +23,9 @@ Gem::Specification.new do |s|
      "VERSION",
      "constantrecord.gemspec",
      "lib/constantrecord.rb",
+     "samples/canadian_province.rb",
+     "samples/german_province.rb",
+     "samples/us_state.rb",
      "test/helper.rb",
      "test/test_constantrecord.rb"
   ]
@@ -32,9 +35,8 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{A tiny ActiveRecord substitute for small, never changing database tables.}
   s.test_files = [
-    "test/__test_constantrecord.rb",
-     "test/helper.rb",
-     "test/test_constantrecord.rb"
+    "test/test_constantrecord.rb",
+     "test/helper.rb"
   ]
 
   if s.respond_to? :specification_version then
