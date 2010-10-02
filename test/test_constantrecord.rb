@@ -147,4 +147,9 @@ class TestConstantRecord < Test::Unit::TestCase
     BadColumnNames.columns :instance_method, :class_variable    #  must log 2 warnings
     assert_equal ConstantRecord::Base.logger.warn_count - warnings_count, 2
   end
+
+  def test_attribute_accessors
+    # TODO!
+  end
+
 end

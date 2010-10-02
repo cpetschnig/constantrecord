@@ -2,7 +2,7 @@ module ConstantRecord  #:nodoc:
 
   class ConstantNotFound < StandardError; end #:nodoc:
   class LoggerError < StandardError; end      #:nodoc:
-  
+
   # ConstantRecord::Base is a tiny ActiveRecord substitute for small, never
   # changing database tables.
   #
@@ -121,7 +121,7 @@ module ConstantRecord  #:nodoc:
     def self.all(*args)
       find_all
     end
-    
+
     # shortcut to #find(:first)
     def self.first(*args)
       find(:first, *args)
@@ -131,7 +131,7 @@ module ConstantRecord  #:nodoc:
     def self.last(*args)
       find(:last, *args)
     end
-    
+
     # shortcut to retrieve value for name - eases dynamic lookup
     def self.[](name)
       ret = @data.detect{|datum| datum.first == name}
@@ -147,6 +147,10 @@ module ConstantRecord  #:nodoc:
       return @data.size if selector == :all
 
       raise ArgumentError.new("#{self}.count failed!\nArguments: #{args.inspect}")
+    end
+
+    def [](attr)
+      instance_variable_get("@#{attr}")
     end
 
     # A ConstantRecord will never be a new record

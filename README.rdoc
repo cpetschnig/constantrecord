@@ -2,6 +2,8 @@
 
 A tiny ActiveRecord substitute for small, never changing database tables.
 
+*** Works with Rails 2 and Rails 3! ***
+
 == Usage
 
   class Currency < ConstantRecord::Base
