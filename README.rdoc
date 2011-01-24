@@ -2,6 +2,8 @@
 
 A tiny ActiveRecord substitute for small, never changing database tables.
 
+*** Works with Rails 2 and Rails 3! ***
+
 == Usage
 
   class Currency < ConstantRecord::Base
@@ -103,6 +105,10 @@ In this case, you must also change your validation:
     validates_inclusion_of :currency_id, :in => Currency.names
   end
 
+== Sample Data
+
+This Gem features sample data for U.S. states, Canadian provinces and
+territories and German Bundesländer. Check out the sample directory!
 
 == Copyright
 
