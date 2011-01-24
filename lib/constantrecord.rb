@@ -162,6 +162,11 @@ module ConstantRecord  #:nodoc:
     def empty?  #:nodoc:
       false
     end
+    
+    # A ConstantRecord will never be destroyed
+    def destroyed? #:nodoc:
+      false
+    end
 
     # Rails 3.0: this method is checked in ActiveRecord::Base.compute_type
     def self.match(*args)
