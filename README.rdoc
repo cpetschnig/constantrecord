@@ -114,4 +114,5 @@ territories and German Bundesländer. Check out the sample directory!
 
 Copyright (c) 2009 Christoph Petschnig. See LICENSE for details.
 
-Thanks to Till Salzer, Torsten Schönebaum and Nate Wiger for contributions!
+Thanks to Till Salzer, Torsten Schönebaum, Nate Wiger and Eric Lindvall for
+contributions!
