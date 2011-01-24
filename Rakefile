@@ -1,6 +1,8 @@
 require 'rubygems'
 require 'rake'
 
+version = File.exist?('VERSION') ? File.read('VERSION') : ""
+
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
@@ -11,6 +13,7 @@ begin
     gem.homepage = "http://github.com/cpetschnig/constantrecord"
     gem.authors = ["Christoph Petschnig"]
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+    gem.version = version
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError
