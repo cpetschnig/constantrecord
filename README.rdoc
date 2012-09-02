@@ -2,7 +2,12 @@
 
 A tiny ActiveRecord substitute for small, never changing database tables.
 
-*** Works with Rails 2 and Rails 3! ***
+*** Works with Rails 2 and Rails 3.0, but not with Rails 3.1 and above! ***
+
+To get this gem working with the new versions of Rails (which means integration
+into the ARel mechanism), a complete rewrite would be necessary. Apologies, but
+please understand that I don't find the time for this. Thanks!
+
 
 == Usage
 
