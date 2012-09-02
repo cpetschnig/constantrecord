@@ -212,6 +212,19 @@ module ConstantRecord  #:nodoc:
       result
     end
 
+    # Returns true if the +comparison_object+ is the same object, or is of the same type and has the same id.
+    def ==(comparison_object)
+      comparison_object.equal?(self) ||
+        (comparison_object.instance_of?(self.class) &&
+          comparison_object.id == id &&
+          !comparison_object.new_record?)
+    end
+
+    # Delegates to ==
+    def eql?(comparison_object)
+      self == (comparison_object)
+    end
+
     # Handle +find_by_xxx+ calls on the class
     def self.method_missing(symbol, *args)  #:nodoc:
       if /^find_by_([_a-zA-Z]\w*)$/ =~ (symbol.to_s)
